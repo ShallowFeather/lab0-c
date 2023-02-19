@@ -170,8 +170,8 @@ void q_reverse(struct list_head *head)
 {
     struct list_head *pos, *n;
     list_for_each_safe (pos, n, head) {
-        pos->prev = n;
         pos->next = pos->prev;
+        pos->prev = n;
     }
     head->next = head->prev;
     head->prev = pos->next;
