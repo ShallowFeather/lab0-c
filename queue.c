@@ -166,30 +166,18 @@ void q_reverse(struct list_head *head)
 {
     if (head == NULL)
         return;
-    struct list_head *pos, *n;
+    struct list_head *pos, *n, *tmp;
     list_for_each_safe (pos, n, head) {
+        tmp = pos->next;
         pos->next = pos->prev;
-        pos->prev = n;
+        pos->prev = tmp;
     }
+    tmp = head->next;
     head->next = head->prev;
-    head->prev = pos->next;
+    head->prev = tmp;
 }
 
-struct list_head *reverseK(struct list_head *head, int k, int cnt)
-{
-    if (head == NULL || cnt < k)
-        return NULL;
-    cnt -= k;
-    struct list_head *now = head, *tmp = head->next;
-    for (int i = 1; i < k; i++) {
-        now->next = now->prev;
-        now->prev = tmp;
-        now = tmp;
-        tmp = tmp->next;
-    }
-    tmp->next = reverseK(now, k, cnt);
-    return now;
-}
+
 
 /* Reverse the nodes of the list k at a time */
 void q_reverseK(struct list_head *head, int k)
@@ -197,7 +185,19 @@ void q_reverseK(struct list_head *head, int k)
     // https://leetcode.com/problems/reverse-nodes-in-k-group/
     if (head == NULL)
         return;
-    reverseK(head, k, q_size(head));
+    struct list_head *pos, *n, *tmp = head;
+    int cnt = 0;
+    LIST_HEAD(tmp_head);
+    list_for_each_safe (pos, n, head) {
+        cnt++;
+        if (cnt == k) {
+            list_cut_position(&tmp_head, tmp, pos);
+            q_reverse(&tmp_head);
+            list_splice_init(&tmp_head, tmp);
+            cnt = 0;
+            tmp = n->prev;
+        }
+    }
     return;
 }
 
@@ -243,8 +243,22 @@ void q_sort(struct list_head *head)
  * the right side of it */
 int q_descend(struct list_head *head)
 {
-    // https://leetcode.com/problems/remove-nodes-from-linked-list/
-    return 0;
+    if (!head || list_empty(head))
+        return 0;
+
+    struct list_head *now = head->prev, *tmp = now->prev;
+
+    while (tmp != head) {
+        if (strcmp(list_entry(tmp, element_t, list)->value,
+                   list_entry(now, element_t, list)->value) < 0) {
+            list_del_init(tmp);
+            q_release_element(list_entry(tmp, element_t, list));
+        } else {
+            now = tmp;
+        }
+        tmp = now->prev;
+    }
+    return q_size(head);
 }
 
 /* Merge all the queues into one sorted queue, which is in ascending order */
