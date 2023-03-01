@@ -279,3 +279,20 @@ int q_merge(struct list_head *head)
     q_sort(contex->q);
     return ret;
 }
+
+void q_shuffle(struct list_head *head)
+{
+    if (head == NULL || list_empty(head))
+        return;
+    int len = q_size(head);
+    struct list_head *tmp;
+    while (len) {
+        tmp = head->next;
+        for (int i = 0; i < (rand() % len) - 1; i++) {
+            tmp = tmp->next;
+        };
+        list_move_tail(tmp, head);
+        len--;
+    }
+    return;
+}
